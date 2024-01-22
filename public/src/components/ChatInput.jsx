@@ -43,14 +43,14 @@ export default function ChatInput({ handleSendMsg }) {
           {showEmojiPicker && <Picker onEmojiClick={handleEmojiClick} />}
         </div>
       </div>
-      <div className="button-container">
+      {/* <div className="button-container">
         <div className="document">
           <Button onClick={() => handleAddQuestion("Вопрос", "Ответ", true)}>
               Добавить тест
             </Button>
-            <Button onClick={handleCheckAnswers}>Проверить ответы</Button>
+            <Button>Проверить ответы</Button>
         </div>
-      </div>
+      </div> */}
       <form className="input-container" onSubmit={(event) => sendChat(event)}>
         <input
           type="text"

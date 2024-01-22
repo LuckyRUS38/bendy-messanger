@@ -5,6 +5,7 @@ import Logout from "./Logout";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import { sendMessageRoute, recieveMessageRoute } from "../utils/APIRoutes";
+import Poll from './Poll';
 
 export default function ChatContainer({ currentChat, socket }) {
   const [messages, setMessages] = useState([]);
@@ -62,12 +63,56 @@ export default function ChatContainer({ currentChat, socket }) {
   }, []);
 
   useEffect(() => {
-    arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
-  }, [arrivalMessage]);
+    if (arrivalMessage) {
+      // Проверяем, существует ли уже такое сообщение в массиве
+      const messageAlreadyExists = messages.some(
+        m => m.message === arrivalMessage.message && m.timestamp === arrivalMessage.timestamp
+      );
+
+      if (!messageAlreadyExists) {
+        setMessages((prev) => [...prev, arrivalMessage]);
+      }
+    }
+  }, [arrivalMessage, messages]);
+
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // const parseChatArray = (message) => {
+  //   const regex = /@chatArray\s#(.*?)#\s\$!(.*?)\$\s\$(.*?)\$\s\$(.*?)\$/;
+  //   const match = message.message.match(regex);
+  //
+  //   if (match) {
+  //     const question = match[1];
+  //     const correctAnswer = match[2];
+  //     const otherAnswers = [match[3], match[4]];
+  //
+  //     return {
+  //       question,
+  //       correctAnswer,
+  //       otherAnswers,
+  //     };
+  //   } else {
+  //     return null;
+  //   }
+  // };
+
+  const renderMessage = (message) => {
+    console.log("Обрабатываемое сообщение:", message);
+
+    if (message && message.message && message.message.startsWith("@chatArray")) {
+      const parts = message.message.split(" ");
+      const question = parts[1];
+      const options = parts.slice(2);
+      console.log("Обнаружен опрос:", question, options);
+      return <Poll question={question} options={options} />;
+    }
+
+    return message && message.message ? <div>{message.message}</div> : <div></div>;
+  };
+
 
   return (
     <Container>
@@ -86,22 +131,60 @@ export default function ChatContainer({ currentChat, socket }) {
         <Logout />
       </div>
       <div className="chat-messages">
-        {messages.map((message) => {
-          return (
-            <div ref={scrollRef} key={uuidv4()}>
-              <div
-                className={`message ${
-                  message.fromSelf ? "sended" : "recieved"
-                }`}
-              >
-                <div className="content ">
-                  <p>{message.message}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+  {messages.map((message) => {
+    // const hasAtSymbol = message.message.includes('@chatArray');
+    // const parsedChatArray = parseChatArray(message);
+
+    return (
+      <div key={uuidv4()}>
+        <div ref={scrollRef} className={`message ${message.fromSelf ? 'sended' : 'recieved'}`}>
+          <div className="content">
+            <p>{message.message}</p>
+            {
+              messages.map((messageObject, index) => {
+                if (typeof messageObject.message === 'string' && messageObject.message.startsWith("@chatArray")) {
+                  const parts = messageObject.message.split(" ");
+                  const question = parts[1];
+                  const options = parts.slice(2);
+                  return (
+                    <div key={index}>
+                      <Poll question={question} options={options} />
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div key={index} className="message">
+                      {messageObject.message || "Сообщение не может быть отображено"}
+                    </div>
+                  );
+                }
+              })
+            }
+
+            {/*{hasAtSymbol && parseChatArray && (*/}
+            {/*  <React.Fragment>*/}
+            {/*    <p>Содержит символ "@"!</p>*/}
+            {/*    <p>{parsedChatArray.question}</p>*/}
+            {/*    <form action="#">*/}
+            {/*      <fieldset>*/}
+            {/*        <input type="radio" name="answer" className="Answer" value={parsedChatArray.correctAnswer} />*/}
+            {/*        <label>{parsedChatArray.correctAnswer}</label>*/}
+            {/*        {parsedChatArray.otherAnswers.map((answer, index) => (*/}
+            {/*          <React.Fragment key={index}>*/}
+            {/*            <input type="radio" name="answer" className="Answer" value={answer} />*/}
+            {/*            <label>{answer}</label>*/}
+            {/*          </React.Fragment>*/}
+            {/*        ))}*/}
+            {/*      </fieldset>*/}
+            {/*    </form>*/}
+            {/*  </React.Fragment>*/}
+            {/*)}*/}
+          </div>
+        </div>
       </div>
+    );
+  })}
+</div>
       <ChatInput handleSendMsg={handleSendMsg} />
     </Container>
   );

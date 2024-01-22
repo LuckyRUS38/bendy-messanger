@@ -6,10 +6,10 @@ export default function Poll({ question, options }) {
       <p className="poll-question">{question}</p>
       <div className="poll-options">
         {options.map((option, index) => (
-          <label key={index}>
-            <input type="radio" name="poll-option" value={option} />
-            {option}
-          </label>
+          <div key={index}>
+            <input type="radio" name={`poll-${question}`} value={option} id={`option-${index}`} />
+            <label htmlFor={`option-${index}`}>{option}</label>
+          </div>
         ))}
       </div>
     </div>
