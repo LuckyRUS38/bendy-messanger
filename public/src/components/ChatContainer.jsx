@@ -80,25 +80,6 @@ export default function ChatContainer({ currentChat, socket }) {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // const parseChatArray = (message) => {
-  //   const regex = /@chatArray\s#(.*?)#\s\$!(.*?)\$\s\$(.*?)\$\s\$(.*?)\$/;
-  //   const match = message.message.match(regex);
-  //
-  //   if (match) {
-  //     const question = match[1];
-  //     const correctAnswer = match[2];
-  //     const otherAnswers = [match[3], match[4]];
-  //
-  //     return {
-  //       question,
-  //       correctAnswer,
-  //       otherAnswers,
-  //     };
-  //   } else {
-  //     return null;
-  //   }
-  // };
-
   const renderMessage = (message) => {
     console.log("Обрабатываемое сообщение:", message);
 
@@ -112,6 +93,27 @@ export default function ChatContainer({ currentChat, socket }) {
 
     return message && message.message ? <div>{message.message}</div> : <div></div>;
   };
+
+  const arrayRender = (message) => {
+    console.log('It works')
+    if (typeof message.message === 'string' && message.message.startsWith("@chatArray")) {
+      const parts = message.message.split(" ");
+      const question = parts[1];
+      const options = parts.slice(2);
+
+      return (
+        <div>
+          <Poll question={question} options={options} />
+        </div>
+      );
+    } else {
+      return (
+        <div className="message">
+          {message.message || "Сообщение не может быть отображено"}
+        </div>
+      );
+    }
+  }
 
 
   return (
@@ -141,24 +143,7 @@ export default function ChatContainer({ currentChat, socket }) {
           <div className="content">
             <p>{message.message}</p>
             {
-              messages.map((messageObject, index) => {
-                if (typeof messageObject.message === 'string' && messageObject.message.startsWith("@chatArray")) {
-                  const parts = messageObject.message.split(" ");
-                  const question = parts[1];
-                  const options = parts.slice(2);
-                  return (
-                    <div key={index}>
-                      <Poll question={question} options={options} />
-                    </div>
-                  );
-                } else {
-                  return (
-                    <div key={index} className="message">
-                      {messageObject.message || "Сообщение не может быть отображено"}
-                    </div>
-                  );
-                }
-              })
+              arrayRender(message)
             }
 
             {/*{hasAtSymbol && parseChatArray && (*/}
